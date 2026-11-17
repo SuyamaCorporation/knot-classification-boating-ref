@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ロープワーク・ノット種類分類リファレンス</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .sea-bg { background: linear-gradient(135deg, #0a1628 0%, #0f2347 100%); }
+    .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,100,180,0.3); }
+    .rope { stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    .rope-main { stroke: #d97706; stroke-width: 4; }
+    .rope-sec { stroke: #c2410c; stroke-width: 4; }
+    .rope-hl { stroke: #fbbf24; stroke-width: 4; opacity: 0.6; }
+    @keyframes stepIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .step-anim { animation: stepIn 0.3s ease-out; }
+    .step-dot { width: 24px; height: 24px; border-radius: 50%; background: #1e40af; color: white; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <header class="sea-bg py-6 px-4 shadow-xl border-b border-blue-900">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-2xl md:text-3xl font-bold text-blue-200">⚓ ロープワーク・ノット種類分類リファレンス</h1>
+      <p class="text-blue-300 mt-1 text-sm">用途別ロープワーク15種の解説と工程SVG図解</p>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+
+    <!-- Filter Bar -->
+    <section class="bg-slate-900 rounded-xl p-4 mb-6 shadow-lg" aria-label="フィルター">
+      <div class="flex flex-wrap gap-3 items-center">
+        <div>
+          <label for="catFilter" class="sr-only">用途フィルター</label>
+          <select id="catFilter" onchange="filterKnots()"
+            class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+            aria-label="用途フィルター">
+            <option value="">全カテゴリ</option>
+            <option value="係留">係留</option>
+            <option value="接続">接続</option>
+            <option value="救助">救助</option>
+            <option value="装飾">装飾</option>
+          </select>
+        </div>
+        <div>
+          <label for="diffKnotFilter" class="sr-only">難度フィルター</label>
+          <select id="diffKnotFilter" onchange="filterKnots()"
+            class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+            aria-label="難度フィルター">
+            <option value="">全難度</option>
+            <option value="初級">初級</option>
+            <option value="中級">中級</option>
+            <option value="上級">上級</option>
+          </select>
+        </div>
+        <span id="knotCount" class="text-slate-400 text-sm ml-2"></span>
+      </div>
+    </section>
+
+    <!-- Knot Cards -->
+    <div id="knotGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8" role="list"></div>
+    <p id="knotNone" class="hidden text-center text-slate-500 py-12">該当するノットが見つかりません</p>
+
+    <!-- Detail Panel -->
+    <section id="knotDetail" class="hidden bg-slate-900 rounded-xl p-5 shadow-xl border border-blue-800 mb-8" aria-label="ノット詳細">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 id="detailTitle" class="text-blue-200 font-bold text-xl"></h2>
+          <p id="detailEn" class="text-slate-400 text-sm"></p>
+        </div>
+        <button onclick="closeDetail()" class="text-slate-400 hover:text-white text-2xl leading-none" aria-label="閉じる">&times;</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" id="detailSteps"></div>
+      <p id="detailDesc" class="text-slate-300 text-sm"></p>
+    </section>
+
+    <!-- Quick Tips -->
+    <section class="bg-slate-900 rounded-xl p-5 shadow-lg" aria-label="クイックヒント">
+      <h2 class="text-blue-300 font-semibold text-lg mb-4">💡 ロープワーク クイックヒント</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-slate-800 rounded-lg p-4">
+          <h3 class="text-amber-300 font-medium mb-2">基本用語</h3>
+          <ul class="text-slate-300 text-sm space-y-1">
+            <li><span class="text-amber-400 font-bold">端末（はしまつ）</span>: ロープの切断端（作業側）</li>
+            <li><span class="text-amber-400 font-bold">元綱（もとづな）</span>: 固定側・長い部分</li>
+            <li><span class="text-amber-400 font-bold">ループ（輪）</span>: ロープで作る輪</li>
+            <li><span class="text-amber-400 font-bold">ターン</span>: 物体に1回巻きつける動作</li>
+            <li><span class="text-amber-400 font-bold">ビット</span>: 係留用の金属・木製柱</li>
+          </ul>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-4">
+          <h3 class="text-amber-300 font-medium mb-2">安全の原則</h3>
+          <ul class="text-slate-300 text-sm space-y-1">
+            <li>🔵 荷重前に必ず結び目を確認する</li>
+            <li>🔵 海水・紫外線でロープが劣化することを考慮</li>
+            <li>🔵 高荷重時は必ずダブルにする（ダブルシートベンド等）</li>
+            <li>🔵 解きやすいノットと解きにくいノットを目的に応じて使い分ける</li>
+            <li>🔵 ロープの種類（ナイロン/ポリエステル）で結び特性が変わる</li>
+          </ul>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-4">
+          <h3 class="text-amber-300 font-medium mb-2">用途別おすすめノット</h3>
+          <ul class="text-slate-300 text-sm space-y-1">
+            <li>🚢 <span class="text-blue-300">船の係留</span>: もやい結び・クリート結び</li>
+            <li>⛺ <span class="text-blue-300">キャンプ</span>: ふた結び・本結び・パーフェクションループ</li>
+            <li>🧗 <span class="text-blue-300">クライミング</span>: 8の字結び・ダブルフィッシャーマンズ</li>
+            <li>⚓ <span class="text-blue-300">アンカリング</span>: アンカーベンド・ラウンドターン</li>
+            <li>🆘 <span class="text-blue-300">救助</span>: もやい結び・ブッチャーズノット</li>
+          </ul>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-4">
+          <h3 class="text-amber-300 font-medium mb-2">ロープ選択ガイド</h3>
+          <ul class="text-slate-300 text-sm space-y-1">
+            <li>🟡 <span class="text-blue-300">係留用</span>: 3撚り・ナイロン（伸縮で衝撃吸収）</li>
+            <li>🟡 <span class="text-blue-300">クライミング</span>: ダブルブレイドポリエステル</li>
+            <li>🟡 <span class="text-blue-300">デッキライン</span>: UV耐性ポリエステル</li>
+            <li>🟡 <span class="text-blue-300">救命索</span>: 高視認性フローティングロープ</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const knots = [
+      {
+        name: 'もやい結び', en: 'Bowline', cat: '係留', diff: '初級',
+        desc: '海のかたまり。端末に輪を作る最も基本的かつ重要な結び。結んでも解きやすく、荷重後も固く締まらない。',
+        steps: [
+          { label: 'ループを作る', svg: 'bowline1' },
+          { label: '端末を通す', svg: 'bowline2' },
+          { label: '端末を引き締める', svg: 'bowline3' },
+        ]
+      },
+      {
+        name: 'クリート結び', en: 'Cleat Hitch', cat: '係留', diff: '初級',
+        desc: 'クリート（係留用金具）にロープを固定する標準的な結び。迅速に固定・解放できる。',
+        steps: [
+          { label: 'クリートに一巻き', svg: 'cleat1' },
+          { label: '8の字に巻く', svg: 'cleat2' },
+          { label: '最後にハーフヒッチ', svg: 'cleat3' },
+        ]
+      },
+      {
+        name: 'ふた結び', en: 'Clove Hitch', cat: '係留', diff: '初級',
+        desc: '柱・リング・ビットに素早くロープを固定。最も速く結べる係留ノットの一つ。',
+        steps: [
+          { label: 'ロープを交差する', svg: 'clove1' },
+          { label: '端末を差し込む', svg: 'clove2' },
+          { label: '両側を引き締める', svg: 'clove3' },
+        ]
+      },
+      {
+        name: '本結び', en: 'Square Knot', cat: '接続', diff: '初級',
+        desc: '同径ロープの接続に使われる基本的な結び。反転すると弱くなる"グラニーノット"に注意。',
+        steps: [
+          { label: '右→左に交差', svg: 'square1' },
+          { label: '左→右に交差', svg: 'square2' },
+          { label: '両端を引き締める', svg: 'square3' },
+        ]
+      },
+      {
+        name: '8の字結び', en: 'Figure-8 Knot', cat: '救助', diff: '初級',
+        desc: 'ロープの端にストッパーノットを作る。クライミングでも多用。荷重後も比較的解きやすい。',
+        steps: [
+          { label: '端末でループを作る', svg: 'fig81' },
+          { label: '端末を下から通す', svg: 'fig82' },
+          { label: '最初のループに通す', svg: 'fig83' },
+        ]
+      },
+      {
+        name: '半掛け結び', en: 'Half Hitch', cat: '係留', diff: '初級',
+        desc: '最も単純なヒッチ。単独では不十分だが、他の結びと組み合わせて使われる基礎結び。',
+        steps: [
+          { label: '対象物に巻く', svg: 'halfhitch1' },
+          { label: '端末をループに通す', svg: 'halfhitch2' },
+          { label: '引き締める', svg: 'halfhitch3' },
+        ]
+      },
+      {
+        name: 'ローリングヒッチ', en: 'Rolling Hitch', cat: '係留', diff: '中級',
+        desc: 'ロープに対して縦方向の力が加わる場面で使用。摩擦力で固定する実用的なヒッチ。',
+        steps: [
+          { label: 'ロープに2回巻く', svg: 'rolling1' },
+          { label: '斜め方向に巻く', svg: 'rolling2' },
+          { label: 'ハーフヒッチで固定', svg: 'rolling3' },
+        ]
+      },
+      {
+        name: 'シートベンド', en: 'Sheet Bend', cat: '接続', diff: '初級',
+        desc: '異なる太さのロープを接続する最も一般的なベンドノット。太いロープ側に輪を作る。',
+        steps: [
+          { label: '太いロープで輪を作る', svg: 'sheet1' },
+          { label: '細いロープを通す', svg: 'sheet2' },
+          { label: '細いロープを固定', svg: 'sheet3' },
+        ]
+      },
+      {
+        name: 'ダブルシートベンド', en: 'Double Sheet Bend', cat: '接続', diff: '中級',
+        desc: 'シートベンドより強固。大きな直径差がある場合や高荷重時に使用する二重版。',
+        steps: [
+          { label: '太いロープで輪を作る', svg: 'dsheet1' },
+          { label: '細ロープを2回巻く', svg: 'dsheet2' },
+          { label: '両端を引き締める', svg: 'dsheet3' },
+        ]
+      },
+      {
+        name: 'フィッシャーマンズノット', en: "Fisherman's Knot", cat: '接続', diff: '中級',
+        desc: 'オーバーハンドノット2つで構成。釣り糸・細ロープの接続に適する。',
+        steps: [
+          { label: '端末にオーバーハンド', svg: 'fish1' },
+          { label: '逆方向からオーバーハンド', svg: 'fish2' },
+          { label: '両側に引いて接合', svg: 'fish3' },
+        ]
+      },
+      {
+        name: 'ダブルフィッシャーマンズ', en: "Double Fisherman's Knot", cat: '接続', diff: '上級',
+        desc: 'クライミングに欠かせない信頼性最高の接続ノット。解くのは困難だが強度は抜群。',
+        steps: [
+          { label: '端末に2回オーバーハンド', svg: 'dfish1' },
+          { label: '逆から2回オーバーハンド', svg: 'dfish2' },
+          { label: '両側に引き締める', svg: 'dfish3' },
+        ]
+      },
+      {
+        name: 'アンカーベンド', en: 'Anchor Bend', cat: '係留', diff: '中級',
+        desc: '錨（アンカー）のリングにロープを固定する専用ノット。強い引張荷重にも緩まない。',
+        steps: [
+          { label: 'リングに2回通す', svg: 'anchor1' },
+          { label: '端末を巻き付ける', svg: 'anchor2' },
+          { label: '端末を差し込む', svg: 'anchor3' },
+        ]
+      },
+      {
+        name: 'ラウンドターン', en: 'Round Turn & 2 Half Hitches', cat: '係留', diff: '初級',
+        desc: 'リング・杭への係留に使われる信頼性の高い結び。荷重下でも確実に保持する。',
+        steps: [
+          { label: 'リングに2回巻く', svg: 'round1' },
+          { label: '1回目ハーフヒッチ', svg: 'round2' },
+          { label: '2回目ハーフヒッチ', svg: 'round3' },
+        ]
+      },
+      {
+        name: 'パーフェクションループ', en: 'Perfection Loop', cat: '接続', diff: '中級',
+        desc: '釣り・ロープの端にきれいなループを作る。整った外観で飾り結びにも使われる。',
+        steps: [
+          { label: '端末でループを作る', svg: 'perf1' },
+          { label: '端末を巻き付ける', svg: 'perf2' },
+          { label: 'ループに通して整える', svg: 'perf3' },
+        ]
+      },
+      {
+        name: 'ブッチャーズノット', en: "Butcher's Knot", cat: '救助', diff: '上級',
+        desc: '荷物をしっかりと縛り付ける結び。医療・救助現場での縛帯固定にも応用される。',
+        steps: [
+          { label: 'ロープを折り返す', svg: 'butcher1' },
+          { label: '折り返し部を固定', svg: 'butcher2' },
+          { label: '端末を引き締める', svg: 'butcher3' },
+        ]
+      },
+    ];
+
+    // SVG diagrams for each step (3 steps per knot)
+    function getStepSVG(id) {
+      const templates = {
+        // Bowline
+        bowline1: `<path class="rope rope-main" d="M20,60 C30,60 40,40 50,40 C60,40 60,60 50,60 C40,60 30,40 40,40"/>`,
+        bowline2: `<path class="rope rope-main" d="M20,60 C30,60 40,40 50,40 C60,40 60,60 50,60 C40,60 30,40 40,40"/> <path class="rope rope-sec" d="M50,20 L50,42 M50,58 L50,80"/>`,
+        bowline3: `<path class="rope rope-main" d="M20,60 C30,60 40,40 50,40 C60,40 60,60 50,60 C40,60 30,40 40,40"/> <path class="rope rope-sec" d="M50,20 L50,42 M50,58 L50,80"/> <circle cx="50" cy="50" r="8" stroke="#fbbf24" stroke-width="2" fill="none"/>`,
+        // Cleat
+        cleat1: `<rect x="30" y="45" width="40" height="10" rx="2" fill="#374151" stroke="#6b7280"/><path class="rope rope-main" d="M15,50 L85,50"/>`,
+        cleat2: `<rect x="30" y="45" width="40" height="10" rx="2" fill="#374151" stroke="#6b7280"/><path class="rope rope-main" d="M15,50 L50,50 L50,40 L70,40 L70,60 L30,60 L30,40 L50,40"/>`,
+        cleat3: `<rect x="30" y="45" width="40" height="10" rx="2" fill="#374151" stroke="#6b7280"/><path class="rope rope-main" d="M15,50 L50,50 L50,40 L70,40 L70,60 L30,60 L30,40 L50,40"/> <path class="rope rope-hl" d="M50,40 L60,30 L70,40"/>`,
+        // Clove Hitch
+        clove1: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,35 Q50,35 50,50 Q50,65 85,65"/>`,
+        clove2: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,35 Q50,35 50,50 Q50,65 85,65"/><path class="rope rope-sec" d="M15,55 Q50,55 50,40 Q50,25 85,25"/>`,
+        clove3: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,35 Q50,35 50,50 Q50,65 85,65"/><path class="rope rope-hl" d="M20,50 Q50,50 85,50"/>`,
+        // Square
+        square1: `<path class="rope rope-main" d="M15,40 Q50,40 50,50 Q50,60 85,60"/>`,
+        square2: `<path class="rope rope-main" d="M15,40 Q50,40 50,50 Q50,60 85,60"/><path class="rope rope-sec" d="M85,40 Q50,40 50,50 Q50,60 15,60"/>`,
+        square3: `<path class="rope rope-main" d="M15,40 Q40,40 50,50 Q60,60 85,60"/><path class="rope rope-sec" d="M85,40 Q60,40 50,50 Q40,60 15,60"/><circle cx="50" cy="50" r="6" stroke="#fbbf24" stroke-width="2" fill="none"/>`,
+        // Figure 8
+        fig81: `<path class="rope rope-main" d="M15,50 Q40,50 50,35 Q60,20 70,35 Q80,50 70,65 Q60,80 50,65 Q40,50 50,35"/>`,
+        fig82: `<path class="rope rope-main" d="M15,50 Q40,50 50,35 Q60,20 70,35 Q80,50 70,65 Q60,80 50,65 Q40,50 50,35"/><path class="rope rope-sec" d="M50,65 L50,85"/>`,
+        fig83: `<path class="rope rope-main" d="M15,50 Q40,50 50,35 Q60,20 70,35 Q80,50 70,65 Q60,80 50,65 Q40,50 50,35"/><path class="rope rope-hl" d="M50,65 L50,85 Q35,85 35,70 L35,55"/>`,
+        // Half Hitch
+        halfhitch1: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,50 Q50,50 60,50 Q70,50 70,40 Q70,30 60,30"/>`,
+        halfhitch2: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,50 Q50,50 60,50 Q70,50 70,40 Q70,30 55,30 Q40,30 40,50 L40,60 L85,60"/>`,
+        halfhitch3: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,50 L85,50"/><circle cx="50" cy="50" r="12" stroke="#fbbf24" stroke-width="2" fill="none" opacity="0.6"/>`,
+        // Rolling Hitch
+        rolling1: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,45 Q48,45 48,50 Q48,55 15,55"/>`,
+        rolling2: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,40 Q48,40 48,50 Q48,60 15,60"/><path class="rope rope-sec" d="M15,50 Q48,50 50,50 Q52,50 85,40"/>`,
+        rolling3: `<line x1="50" y1="10" x2="50" y2="90" stroke="#6b7280" stroke-width="6"/><path class="rope rope-main" d="M15,40 Q48,40 48,50 Q48,60 15,60"/><path class="rope rope-hl" d="M85,40 Q55,40 55,50 L55,70 L85,70"/>`,
+        // Sheet Bend
+        sheet1: `<path class="rope rope-main" d="M15,45 Q40,45 50,50 Q60,55 85,55"/>`,
+        sheet2: `<path class="rope rope-main" d="M15,45 Q40,45 50,50 Q60,55 85,55"/><path class="rope rope-sec" d="M15,55 Q40,55 50,50 Q60,45 85,45"/>`,
+        sheet3: `<path class="rope rope-main" d="M15,40 Q50,40 50,50 Q50,60 15,60"/><path class="rope rope-sec" d="M85,50 Q60,50 55,45 Q50,40 55,55 Q60,65 85,55"/>`,
+        // Double Sheet Bend
+        dsheet1: `<path class="rope rope-main" d="M15,40 Q50,40 50,50 Q50,60 15,60"/>`,
+        dsheet2: `<path class="rope rope-main" d="M15,40 Q50,40 50,50 Q50,60 15,60"/><path class="rope rope-sec" d="M85,50 Q60,50 55,42 Q50,38 55,56 Q60,68 85,55"/>`,
+        dsheet3: `<path class="rope rope-main" d="M15,40 Q50,40 50,50 Q50,60 15,60"/><path class="rope rope-hl" d="M85,48 Q60,48 55,38 Q50,32 55,52 Q60,68 85,52"/>`,
+        // Fishermans
+        fish1: `<path class="rope rope-main" d="M15,50 Q30,50 40,45 Q50,40 40,35 Q30,30 30,45 L85,45"/>`,
+        fish2: `<path class="rope rope-main" d="M15,50 Q30,50 40,45 Q50,40 40,35 Q30,30 30,45 L85,45"/><path class="rope rope-sec" d="M85,55 Q70,55 60,60 Q50,65 60,70 Q70,75 70,60 L15,60"/>`,
+        fish3: `<path class="rope rope-main" d="M15,45 L45,45"/><path class="rope rope-sec" d="M85,55 L55,55"/><circle cx="50" cy="50" r="8" stroke="#fbbf24" stroke-width="2" fill="none"/>`,
+        // Double Fishermans
+        dfish1: `<path class="rope rope-main" d="M15,50 Q30,50 40,42 Q50,34 42,34 Q34,34 34,42 Q34,50 42,50 L85,50"/>`,
+        dfish2: `<path class="rope rope-main" d="M15,50 Q30,50 40,42 Q50,34 42,34 Q34,34 34,42 Q34,50 42,50 L85,50"/><path class="rope rope-sec" d="M85,55 Q70,55 60,63 Q50,71 58,71 Q66,71 66,63 Q66,55 58,55 L15,55"/>`,
+        dfish3: `<path class="rope rope-main" d="M10,45 L40,45"/><path class="rope rope-sec" d="M90,55 L60,55"/><rect x="40" y="43" width="20" height="14" rx="3" stroke="#fbbf24" stroke-width="2" fill="none"/>`,
+        // Anchor Bend
+        anchor1: `<circle cx="50" cy="50" r="15" stroke="#6b7280" stroke-width="4" fill="none"/><path class="rope rope-main" d="M15,50 Q35,50 35,50 Q35,35 50,35 Q65,35 65,50 L85,50"/>`,
+        anchor2: `<circle cx="50" cy="50" r="15" stroke="#6b7280" stroke-width="4" fill="none"/><path class="rope rope-main" d="M15,50 Q35,50 35,50 Q35,35 50,35 Q65,35 65,50 L85,50"/><path class="rope rope-sec" d="M35,50 Q35,65 50,65 Q65,65 65,50"/>`,
+        anchor3: `<circle cx="50" cy="50" r="15" stroke="#6b7280" stroke-width="4" fill="none"/><path class="rope rope-main" d="M15,50 Q35,50 50,35 Q65,35 65,50 Q65,65 50,65 Q35,65 35,50 L85,50"/>`,
+        // Round Turn
+        round1: `<circle cx="50" cy="50" r="12" stroke="#6b7280" stroke-width="4" fill="none"/><path class="rope rope-main" d="M15,50 Q38,50 38,38 Q38,26 50,26 Q62,26 62,38 Q62,50 50,50 Q38,50 38,62 Q38,74 50,74 Q62,74 62,62 L85,62"/>`,
+        round2: `<circle cx="50" cy="50" r="12" stroke="#6b7280" stroke-width="4" fill="none"/><path class="rope rope-main" d="M15,50 Q38,50 38,38 Q38,26 50,26 Q62,26 62,38 Q62,62 85,62"/><path class="rope rope-sec" d="M62,62 Q70,62 70,55 Q70,48 85,48"/>`,
+        round3: `<circle cx="50" cy="50" r="12" stroke="#6b7280" stroke-width="4" fill="none"/><path class="rope rope-main" d="M15,50 Q38,50 38,38 Q38,26 50,26 Q62,26 62,38 Q62,62 85,62"/><path class="rope rope-hl" d="M62,55 Q70,55 70,48 Q70,41 85,41 M62,48 Q72,48 72,41 Q72,34 85,34"/>`,
+        // Perfection Loop
+        perf1: `<path class="rope rope-main" d="M15,50 Q30,50 40,40 Q50,30 60,40 Q70,50 60,60 Q50,70 40,60"/>`,
+        perf2: `<path class="rope rope-main" d="M15,50 Q30,50 40,40 Q50,30 60,40 Q70,50 60,60 Q50,70 40,60"/><path class="rope rope-sec" d="M40,60 Q35,65 40,70 Q50,75 60,70 L85,60"/>`,
+        perf3: `<path class="rope rope-main" d="M15,50 Q40,50 50,40 Q60,30 70,40 Q80,50 70,60 Q60,70 50,60 Q40,50 40,60 L85,60"/>`,
+        // Butchers
+        butcher1: `<path class="rope rope-main" d="M15,50 Q40,50 50,40 Q60,30 70,40 Q80,50 70,60 Q60,70 50,60 Q40,50 85,50"/>`,
+        butcher2: `<path class="rope rope-main" d="M15,50 Q40,50 50,40 Q60,30 70,40 Q80,50 70,60 Q60,70 50,60 Q40,50 85,50"/><path class="rope rope-sec" d="M50,40 L50,20 Q40,20 35,30"/>`,
+        butcher3: `<path class="rope rope-main" d="M20,50 Q50,30 80,50 Q50,70 20,50"/><path class="rope rope-sec" d="M50,30 L50,10"/><circle cx="50" cy="50" r="10" stroke="#fbbf24" stroke-width="2" fill="none" opacity="0.7"/>`,
+      };
+      return templates[id] || `<line class="rope rope-main" x1="15" y1="50" x2="85" y2="50"/>`;
+    }
+
+    function makeSVGStep(svgId) {
+      return `<svg viewBox="0 0 100 100" width="80" height="80" class="block mx-auto">${getStepSVG(svgId)}</svg>`;
+    }
+
+    const catColors = {
+      '係留': 'bg-blue-800 text-blue-200',
+      '接続': 'bg-green-800 text-green-200',
+      '救助': 'bg-red-800 text-red-200',
+      '装飾': 'bg-purple-800 text-purple-200',
+    };
+    const diffColors = {
+      '初級': 'bg-teal-800 text-teal-200',
+      '中級': 'bg-orange-800 text-orange-200',
+      '上級': 'bg-rose-800 text-rose-200',
+    };
+
+    let selectedKnot = null;
+
+    function renderKnots(list) {
+      const grid = document.getElementById('knotGrid');
+      const none = document.getElementById('knotNone');
+      const count = document.getElementById('knotCount');
+      grid.innerHTML = '';
+      count.textContent = `${list.length}件表示中`;
+      if (list.length === 0) { none.classList.remove('hidden'); return; }
+      none.classList.add('hidden');
+
+      list.forEach((k, i) => {
+        const card = document.createElement('article');
+        card.className = 'bg-slate-900 rounded-xl p-4 shadow-lg card-hover border border-slate-700 cursor-pointer';
+        card.setAttribute('role', 'listitem');
+        card.setAttribute('aria-label', `${k.name}の詳細を見る`);
+        card.onclick = () => showDetail(k);
+        card.innerHTML = `
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <h3 class="text-blue-200 font-bold">${k.name /* xss-ok: knotsハードコード配列のname */}</h3>
+              <p class="text-slate-500 text-xs">${k.en /* xss-ok: knotsハードコード配列のen */}</p>
+            </div>
+            <div class="flex flex-col gap-1 items-end">
+              <span class="inline-block px-2 py-0.5 rounded text-xs font-medium ${catColors[k.cat] /* xss-ok: ハードコードcatColorsマップの値 */}">${k.cat /* xss-ok: knotsハードコード配列のcat */}</span>
+              <span class="inline-block px-2 py-0.5 rounded text-xs font-medium ${diffColors[k.diff] /* xss-ok: ハードコードdiffColorsマップの値 */}">${k.diff /* xss-ok: knotsハードコード配列のdiff */}</span>
+            </div>
+          </div>
+          <div class="flex gap-2 mb-3 justify-center bg-slate-800 rounded-lg p-2">
+            ${k.steps.map(s => makeSVGStep(s.svg) /* xss-ok: makeSVGStep()はハードコードSVGデータからSVGを生成 */).join('')}
+          </div>
+          <p class="text-slate-400 text-xs line-clamp-2">${k.desc /* xss-ok: knotsハードコード配列のdesc */}</p>
+          <p class="text-blue-400 text-xs mt-2 text-right">クリックで詳細 →</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function showDetail(k) {
+      const panel = document.getElementById('knotDetail');
+      document.getElementById('detailTitle').textContent = k.name;
+      document.getElementById('detailEn').textContent = k.en;
+      document.getElementById('detailDesc').textContent = k.desc;
+      const stepsEl = document.getElementById('detailSteps');
+      stepsEl.innerHTML = '';
+      k.steps.forEach((s, i) => {
+        const div = document.createElement('div');
+        div.className = 'bg-slate-800 rounded-lg p-3 text-center step-anim';
+        div.innerHTML = `
+          <div class="flex items-center gap-2 mb-2 justify-center">
+            <span class="step-dot">${i+1 /* xss-ok: 整数ループカウンタ */}</span>
+            <span class="text-slate-300 text-xs font-medium">${s.label /* xss-ok: knotsハードコード配列のstep.label */}</span>
+          </div>
+          <svg viewBox="0 0 100 100" width="100" height="100" class="block mx-auto bg-slate-900 rounded">${getStepSVG(s.svg) /* xss-ok: getStepSVG()はハードコードSVGデータからSVGパスを返す内部関数 */}</svg>
+        `;
+        stepsEl.appendChild(div);
+      });
+      panel.classList.remove('hidden');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeDetail() {
+      document.getElementById('knotDetail').classList.add('hidden');
+    }
+
+    function filterKnots() {
+      const cat = document.getElementById('catFilter').value;
+      const diff = document.getElementById('diffKnotFilter').value;
+      const filtered = knots.filter(k =>
+        (!cat || k.cat === cat) && (!diff || k.diff === diff)
+      );
+      renderKnots(filtered);
+    }
+
+    renderKnots(knots);
+  </script>
+</body>
+</html>
